@@ -119,7 +119,7 @@ fun SettingsPage(onBack: () -> Unit) {
                             it,
                             android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
                         )
-                        store.setBackground(it.toString(), false)
+                        scope.launch { store.setBackground(it.toString(), false) }
                     }
                 }
                 val videoLauncher = rememberLauncherForActivityResult(
@@ -130,7 +130,7 @@ fun SettingsPage(onBack: () -> Unit) {
                             it,
                             android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
                         )
-                        store.setBackground(it.toString(), true)
+                        scope.launch { store.setBackground(it.toString(), true) }
                     }
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
