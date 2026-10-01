@@ -96,6 +96,14 @@ fun SettingsPage(onBack: () -> Unit, onAbout: () -> Unit = {}) {
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    Text("音量键翻页", fontSize = 15.sp)
+                    Switch(checked = s.volumeKeyPaging, onCheckedChange = { scope.launch { store.setVolumeKeyPaging(it) } })
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Column {
                         Text("默认小说模式", fontSize = 15.sp)
                         Text(

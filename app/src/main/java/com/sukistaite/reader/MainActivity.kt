@@ -39,6 +39,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.sukistaite.reader.data.AppSettings
 import com.sukistaite.reader.data.SettingsStore
+import com.sukistaite.reader.data.VolumeKeyBus
 import com.sukistaite.reader.ui.AboutPage
 import com.sukistaite.reader.ui.BookmarkPage
 import com.sukistaite.reader.ui.ChaptersPage
@@ -50,6 +51,17 @@ import com.sukistaite.reader.ui.theme.AppFonts
 import com.sukistaite.reader.ui.theme.SukiReaderTheme
 
 class MainActivity : ComponentActivity() {
+    override fun onKeyDown(keyCode: Int, event: android.view.KeyEvent?): Boolean {
+        // 音量键翻页：仅当音量键翻页开启时拦截（阅读器内）
+        if (VolumeKeyBus.enabled) {
+            when (keyCode) {
+                android.view.KeyEvent.KEYCODE_VOLUME_UP -> { VolumeKeyBus.push(1); return true }
+                android.view.KeyEvent.KEYCODE_VOLUME_DOWN -> { VolumeKeyBus.push(2); return true }
+            }
+        }
+        return super.onKeyDown(keyCode, event)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -159,16 +171,23 @@ private fun AppNavHost(
         }
     ) {
         composable("chapters") { ChaptersPage(onOpen = { navController.navigate("reader/$it") }, onSettings = { navController.navigate("settings") }) }
-        composable("search") { SearchPage(onJump = { line -> navController.navigate("reader/line-$line") }) }
+        composable("search") {
+            SearchPage(
+                settings = settings,
+                settingsStore = store,
+                onJump = { line, kw -> navController.navigate("reader/line-$line?hl=$kw") }
+            )
+        }
         composable("bookmarks") { BookmarkPage(onOpen = { navController.navigate("reader/$it") }) }
-        composable("reader/{chapterId}") { entry ->
+        composable("reader/{chapterId}?hl={hl}") { entry ->
             val id = entry.arguments?.getString("chapterId") ?: "0"
             ReaderPage(
                 chapterId = id,
                 settings = settings,
                 settingsStore = store,
                 onBack = { navController.popBackStack() },
-                onSettings = { navController.navigate("settings") }
+                onSettings = { navController.navigate("settings") },
+                onJumpToLine = { line -> navController.navigate("reader/${line + 1}") }
             )
         }
         composable("settings") { SettingsPage(onBack = { navController.popBackStack() }, onAbout = { navController.navigate("about") }) }

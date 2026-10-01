@@ -14,7 +14,7 @@ import java.net.URL
 
 /** 应用元信息 */
 object AppMeta {
-    const val VERSION = "1.1.0"
+    const val VERSION = "1.2.0"
     const val CONTENT_VERSION = "V3.1"
     const val REPO = "SukiStaite/Sukistaite"
     const val REPO_URL = "https://github.com/SukiStaite/Sukistaite"
