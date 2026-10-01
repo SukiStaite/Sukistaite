@@ -56,7 +56,7 @@ fun ChaptersPage(onOpen: (Int) -> Unit, onSettings: () -> Unit) {
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { onOpen(h.line) },
+                            .clickable { onOpen(h.line + 1) },
                         colors = CardDefaults.cardColors(
                             containerColor = if (isChapter)
                                 MaterialTheme.colorScheme.primaryContainer

@@ -109,7 +109,11 @@ fun ReaderPage(
 
     val chapterTitle = remember(headings, explicitTarget) {
         if (headings.isEmpty()) ""
-        else DocRepository.chapterOf(headings, (explicitTarget ?: 0).coerceAtLeast(0))
+        else {
+            val t = (explicitTarget ?: 0).coerceAtLeast(0)
+            headings.firstOrNull { it.line == t }?.title
+                ?: DocRepository.chapterOf(headings, t)
+        }
     }
     val chapterKey = chapterTitle.ifBlank { "文档开头" }
 
