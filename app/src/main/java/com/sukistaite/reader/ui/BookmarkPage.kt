@@ -36,7 +36,7 @@ fun BookmarkPage(onOpen: (Int) -> Unit) {
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize().padding(padding),
-                contentPadding = PaddingValues(16.dp),
+                contentPadding = PaddingValues(start=16.dp, end=16.dp, top=16.dp, bottom=110.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(bookmarks, key = { it.line }) { bm ->

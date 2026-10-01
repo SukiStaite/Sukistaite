@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.MenuBook
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,7 +19,7 @@ import com.sukistaite.reader.ui.components.AppTopBar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ChaptersPage(onOpen: (Int) -> Unit) {
+fun ChaptersPage(onOpen: (Int) -> Unit, onSettings: () -> Unit) {
     val ctx = androidx.compose.ui.platform.LocalContext.current
     var headings by remember { mutableStateOf<List<Heading>>(emptyList()) }
     var loading by remember { mutableStateOf(true) }
@@ -30,7 +30,16 @@ fun ChaptersPage(onOpen: (Int) -> Unit) {
     }
 
     Scaffold(
-        topBar = { AppTopBar(title = "Sukistaite · 章节目录") }
+        topBar = {
+            AppTopBar(
+                title = "Sukistaite · 章节目录",
+                actions = {
+                    IconButton(onClick = onSettings) {
+                        Icon(Icons.Filled.Settings, "设置")
+                    }
+                }
+            )
+        }
     ) { padding ->
         if (loading) {
             Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
@@ -39,7 +48,7 @@ fun ChaptersPage(onOpen: (Int) -> Unit) {
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize().padding(padding),
-                contentPadding = PaddingValues(16.dp),
+                contentPadding = PaddingValues(start=16.dp, end=16.dp, top=16.dp, bottom=110.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(headings, key = { it.line }) { h ->
@@ -58,22 +67,16 @@ fun ChaptersPage(onOpen: (Int) -> Unit) {
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            if (isChapter) {
-                                Icon(
-                                    Icons.AutoMirrored.Filled.MenuBook, null,
-                                    tint = MaterialTheme.colorScheme.onPrimaryContainer
-                                )
-                                Spacer(Modifier.width(10.dp))
-                            } else {
-                                Spacer(Modifier.width(10.dp))
-                            }
                             Text(
-                                text = h.title,
-                                fontSize = if (isChapter) 16.sp else 14.sp,
+                                if (isChapter) "📖" else "　",
+                                fontSize = 14.sp
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                h.title,
+                                fontSize = if (isChapter) 15.sp else 13.sp,
                                 fontWeight = if (isChapter) FontWeight.Bold else FontWeight.Normal,
-                                color = if (isChapter)
-                                    MaterialTheme.colorScheme.onPrimaryContainer
-                                else MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                         }
                     }

@@ -5,13 +5,14 @@ import kotlinx.serialization.Serializable
 import android.content.Context
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.File
 
 /** 一条解析后的章/节标题 */
 data class Heading(
     val line: Int,      // 在全文中的行号（0-based）
     val level: Int,     // 1 = 章，2 = 节
     val title: String,
-    val fullText: String // 原始行文本（含装饰线判断用）
+    val fullText: String
 )
 
 /** 一条搜索结果 */
@@ -32,15 +33,28 @@ data class Bookmark(
 
 /**
  * 文档仓库：加载 assets/sukistaite.txt 并解析章节结构。
+ * 若用户在关于页下载过内容更新（filesDir/sukistaite_content.txt），优先使用它。
  * 单例，整个应用共享一份解析结果。
  */
 object DocRepository {
     @Volatile private var cachedLines: List<String>? = null
     @Volatile private var cachedHeadings: List<Heading>? = null
 
+    fun contentFile(context: Context): File = File(context.filesDir, "sukistaite_content.txt")
+
+    fun invalidateCache() {
+        cachedLines = null
+        cachedHeadings = null
+    }
+
     suspend fun loadLines(context: Context): List<String> = withContext(Dispatchers.IO) {
         cachedLines ?: run {
-            val text = context.assets.open("sukistaite.txt").bufferedReader(Charsets.UTF_8).use { it.readText() }
+            val f = contentFile(context)
+            val text = if (f.exists() && f.length() > 0) {
+                f.readText()
+            } else {
+                context.assets.open("sukistaite.txt").bufferedReader(Charsets.UTF_8).use { it.readText() }
+            }
             val lines = text.split('\n')
             cachedLines = lines
             lines

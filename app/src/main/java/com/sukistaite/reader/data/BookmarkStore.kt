@@ -4,13 +4,13 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.encodeToString
+import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "suki_reader")
@@ -52,6 +52,13 @@ class BookmarkStore(private val context: Context) {
                 json.decodeFromString<List<Bookmark>>(prefs[KEY_BOOKMARKS] ?: "[]")
             } catch (e: Exception) { emptyList() }
             prefs[KEY_BOOKMARKS] = json.encodeToString(current.filter { it.line != line })
+        }
+    }
+
+    /** 云同步恢复：整体替换本地书签（按行号排序去重） */
+    suspend fun restoreAll(list: List<Bookmark>) {
+        context.dataStore.edit { prefs ->
+            prefs[KEY_BOOKMARKS] = json.encodeToString(list.distinctBy { it.line }.sortedBy { it.line })
         }
     }
 
