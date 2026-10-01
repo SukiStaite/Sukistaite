@@ -14,7 +14,7 @@ android {
         targetSdk = 34
         versionCode = 2
         versionName = "1.4.0"
-        buildConfigField("String", "BUILD_TIME", "\"" + java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", java.util.Locale.US).format(java.util.Date()) + "\"")
+        buildConfigField("String", "BUILD_TIME", "\"" + java.time.LocalDateTime.now(java.time.ZoneId.of("UTC+8")).format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")) + "\"")
     }
 
     buildTypes {
