@@ -40,37 +40,30 @@ import kotlin.math.roundToInt
  * 实现：底色 = surface 与 surfaceVariant 按强度插值，alpha 随强度降低（越强越「雾」），
  * 附带 blur 需要硬件层支持，为避免 API/性能坑用纯色渐变近似 Liquid Glass。
  */
+@Composable
 fun Modifier.glass(
     shape: Shape = RoundedCornerShape(0.dp),
     baseAlpha: Float = 0.9f,
     highlight: Boolean = true
-): Modifier = composedGlass(shape, baseAlpha, highlight)
+): Modifier {
+    val strength = LocalGlassStrength.current
+    val surface = MaterialTheme.colorScheme.surface
+    val variant = MaterialTheme.colorScheme.surfaceVariant
+    val alpha = (baseAlpha - strength * 0.45f).coerceIn(0.35f, 1f)
+    val top = surface.copy(alpha = alpha).lerpTo(variant, strength * 0.4f)
+    val bottom = variant.copy(alpha = alpha)
 
-private fun Modifier.composedGlass(
-    shape: Shape,
-    baseAlpha: Float,
-    highlight: Boolean
-): Modifier = this.then(
-    androidx.compose.ui.composed {
-        val strength = LocalGlassStrength.current
-        val surface = MaterialTheme.colorScheme.surface
-        val variant = MaterialTheme.colorScheme.surfaceVariant
-        val alpha = (baseAlpha - strength * 0.45f).coerceIn(0.35f, 1f)
-        val top = surface.copy(alpha = alpha).lerpTo(variant, strength * 0.4f)
-        val bottom = variant.copy(alpha = alpha)
+    val borderBrush = if (highlight)
+        Brush.verticalGradient(
+            listOf(Color.White.copy(alpha = 0.30f + strength * 0.2f), Color.White.copy(alpha = 0.05f))
+        )
+    else Brush.verticalGradient(listOf(Color.Transparent, Color.Transparent))
 
-        val borderBrush = if (highlight)
-            Brush.verticalGradient(
-                listOf(Color.White.copy(alpha = 0.30f + strength * 0.2f), Color.White.copy(alpha = 0.05f))
-            )
-        else Brush.verticalGradient(listOf(Color.Transparent, Color.Transparent))
-
-        this
-            .clip(shape)
-            .background(Brush.verticalGradient(listOf(top, bottom)), shape)
-            .border(0.8.dp, borderBrush, shape)
-    }
-)
+    return this
+        .clip(shape)
+        .background(Brush.verticalGradient(listOf(top, bottom)), shape)
+        .border(0.8.dp, borderBrush, shape)
+}
 
 private fun Color.lerpTo(to: Color, f: Float): Color = Color(
     red = red + (to.red - red) * f,
