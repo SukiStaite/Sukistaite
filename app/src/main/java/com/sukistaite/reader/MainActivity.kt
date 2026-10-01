@@ -171,7 +171,7 @@ private fun AppNavHost(
                 onSettings = { navController.navigate("settings") }
             )
         }
-        composable("settings") { SettingsPage(onBack = { navController.popBackStack() }) }
+        composable("settings") { SettingsPage(onBack = { navController.popBackStack() }, onAbout = { navController.navigate("about") }) }
         composable("about") { AboutPage(onBack = { navController.popBackStack() }) }
     }
 }

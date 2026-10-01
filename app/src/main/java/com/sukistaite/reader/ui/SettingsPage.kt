@@ -26,7 +26,7 @@ import com.sukistaite.reader.ui.theme.AppFonts
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsPage(onBack: () -> Unit) {
+fun SettingsPage(onBack: () -> Unit, onAbout: () -> Unit = {}) {
     val ctx = LocalContext.current
     val store = remember { SettingsStore(ctx) }
     val scope = rememberCoroutineScope()
@@ -200,6 +200,9 @@ fun SettingsPage(onBack: () -> Unit) {
                     }
                 }
             }
+
+            // ── 关于 ──
+            AboutEntry(onAbout)
         }
     }
 }
@@ -251,6 +254,23 @@ private fun SectionCard(title: String, content: @Composable ColumnScope.() -> Un
             )
             Spacer(Modifier.height(12.dp))
             content()
+        }
+    }
+}
+
+@Composable
+private fun AboutEntry(onAbout: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onAbout() }
+    ) {
+        Row(
+            Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("关于", fontSize = 15.sp, modifier = Modifier.weight(1f))
+            Text("版本 · 检查更新 ›", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
