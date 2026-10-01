@@ -188,6 +188,10 @@ class SettingsStore(private val context: Context) {
 
     suspend fun setVolumeKeyPaging(v: Boolean) = edit { it[K.volumeKeyPaging] = v }
 
+    suspend fun setHighlights(v: Set<Int>) = edit { it[K.highlights] = HighlightCodec.encode(v) }
+
+    suspend fun setSearchHistory(v: List<String>) = edit { it[K.searchHistory] = HistoryCodec.encode(v.take(20)) }
+
     suspend fun pushSearchHistory(q: String) = edit { p ->
         if (q.isNotBlank()) {
             val cur = HistoryCodec.decode(p[K.searchHistory]).filter { it != q }.toMutableList()

@@ -105,6 +105,7 @@ fun ReaderPage(
     val scope = rememberCoroutineScope()
     val haptic = LocalHapticFeedback.current
     val bookmarkStore = remember { BookmarkStore(ctx) }
+    val statsStore = remember { com.sukistaite.reader.data.ReadingStatsStore(ctx) }
     val bookmarks by bookmarkStore.bookmarks.collectAsState(initial = emptyList())
     val highlights by settingsStore.highlights.collectAsState(initial = emptySet())
 
@@ -192,6 +193,15 @@ fun ReaderPage(
                     settingsStore.saveProgress(chapterKey, it.startLine)
                 }
             }
+        }
+    }
+
+    // v1.4 阅读计时：章节停留每 15 秒 +15s；进入时记历史
+    LaunchedEffect(chapterKey) {
+        statsStore.addHistory(chapterKey, (explicitTarget ?: 0).coerceAtLeast(0))
+        while (true) {
+            kotlinx.coroutines.delay(15000)
+            statsStore.addSeconds(chapterKey, 15)
         }
     }
 

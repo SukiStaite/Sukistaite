@@ -14,10 +14,15 @@ import java.net.URL
 
 /** 应用元信息 */
 object AppMeta {
-    const val VERSION = "1.2.0"
+    const val VERSION = "1.4.0"
     const val CONTENT_VERSION = "V3.1"
     const val REPO = "SukiStaite/Sukistaite"
     const val REPO_URL = "https://github.com/SukiStaite/Sukistaite"
+    // 构建时间：CI 环境注入 BuildConfig，本地为未知
+    val BUILD_TIME: String = try {
+        Class.forName("com.sukistaite.reader.BuildConfig")
+            .getDeclaredField("BUILD_TIME").get(null) as String
+    } catch (e: Exception) { "未知" }
 }
 
 data class UpdateInfo(

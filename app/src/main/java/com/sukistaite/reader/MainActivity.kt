@@ -46,6 +46,7 @@ import com.sukistaite.reader.ui.ChaptersPage
 import com.sukistaite.reader.ui.ReaderPage
 import com.sukistaite.reader.ui.SearchPage
 import com.sukistaite.reader.ui.SettingsPage
+import com.sukistaite.reader.ui.StatsPage
 import com.sukistaite.reader.ui.components.BackgroundLayer
 import com.sukistaite.reader.ui.theme.AppFonts
 import com.sukistaite.reader.ui.theme.SukiReaderTheme
@@ -94,7 +95,7 @@ fun SukiReaderApp(settings: AppSettings, store: SettingsStore) {
     val font = AppFonts.resolve(settings.fontFamily)
 
     val inReader = currentRoute == "reader/{chapterId}"
-    val inSub = inReader || currentRoute == "settings" || currentRoute == "about"
+    val inSub = inReader || currentRoute == "settings" || currentRoute == "about" || currentRoute == "stats"
 
     // 全局背景层（设置里自定义的照片/视频）
     Box(Modifier.fillMaxSize()) {
@@ -190,7 +191,8 @@ private fun AppNavHost(
                 onJumpToLine = { line -> navController.navigate("reader/${line + 1}") }
             )
         }
-        composable("settings") { SettingsPage(onBack = { navController.popBackStack() }, onAbout = { navController.navigate("about") }) }
+        composable("settings") { SettingsPage(onBack = { navController.popBackStack() }, onAbout = { navController.navigate("about") }, onStats = { navController.navigate("stats") }) }
+        composable("stats") { StatsPage(onBack = { navController.popBackStack() }) }
         composable("about") { AboutPage(onBack = { navController.popBackStack() }) }
     }
 }

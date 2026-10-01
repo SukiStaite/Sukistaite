@@ -26,7 +26,7 @@ import com.sukistaite.reader.ui.theme.AppFonts
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsPage(onBack: () -> Unit, onAbout: () -> Unit = {}) {
+fun SettingsPage(onBack: () -> Unit, onAbout: () -> Unit = {}, onStats: () -> Unit = {}) {
     val ctx = LocalContext.current
     val store = remember { SettingsStore(ctx) }
     val scope = rememberCoroutineScope()
@@ -299,6 +299,57 @@ fun SettingsPage(onBack: () -> Unit, onAbout: () -> Unit = {}) {
                     if (msg.isNotEmpty()) {
                         Text(msg, fontSize = 12.sp, color = MaterialTheme.colorScheme.primary)
                     }
+                }
+            }
+
+            // ── 数据 ──
+            SectionCard("数据") {
+                val ctx = androidx.compose.ui.platform.LocalContext.current
+                val bmStore = remember { com.sukistaite.reader.data.BookmarkStore(ctx) }
+                val statsStore = remember { com.sukistaite.reader.data.ReadingStatsStore(ctx) }
+                var msg by remember { mutableStateOf("") }
+
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Button(onClick = {
+                        scope.launch {
+                            msg = try {
+                                val json = com.sukistaite.reader.data.BackupManager.export(store, bmStore, statsStore)
+                                val share = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                                    type = "application/json"
+                                    putExtra(android.content.Intent.EXTRA_TEXT, json)
+                                    putExtra(android.content.Intent.EXTRA_TITLE, "SukiReader 备份")
+                                }
+                                ctx.startActivity(android.content.Intent.createChooser(share, "导出备份"))
+                                "已生成备份"
+                            } catch (e: Exception) { "导出失败: ${e.message}" }
+                        }
+                    }) { Text("导出备份") }
+
+                    val picker = rememberLauncherForActivityResult(
+                        androidx.activity.result.contract.ActivityResultContracts.GetContent()
+                    ) { uri ->
+                        uri?.let {
+                            scope.launch {
+                                msg = try {
+                                    val text = ctx.contentResolver.openInputStream(it)?.bufferedReader()?.use { r -> r.readText() } ?: ""
+                                    val r = com.sukistaite.reader.data.BackupManager.import(text, store, bmStore, statsStore)
+                                    r.fold(
+                                        onSuccess = { "✓ 已恢复 · $it" },
+                                        onFailure = { "导入失败: ${it.message}" }
+                                    )
+                                } catch (e: Exception) { "导入失败: ${e.message}" }
+                            }
+                        }
+                    }
+                    Button(onClick = { picker.launch("*/*") }) { Text("导入备份") }
+                }
+                if (msg.isNotEmpty()) {
+                    Spacer(Modifier.height(6.dp))
+                    Text(msg, fontSize = 12.sp, color = MaterialTheme.colorScheme.primary)
+                }
+                Spacer(Modifier.height(8.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    OutlinedButton(onClick = onStats) { Text("阅读统计") }
                 }
             }
 

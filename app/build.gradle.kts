@@ -8,12 +8,14 @@ android {
     namespace = "com.sukistaite.reader"
     compileSdk = 34
 
+    val buildTime = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", java.util.Locale.US).format(java.util.Date())
     defaultConfig {
         applicationId = "com.sukistaite.reader"
         minSdk = 26
         targetSdk = 34
         versionCode = 2
-        versionName = "1.1.0"
+        versionName = "1.4.0"
+        buildConfigField("String", "BUILD_TIME", "\"$buildTime\"")
     }
 
     buildTypes {
@@ -30,6 +32,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.14"

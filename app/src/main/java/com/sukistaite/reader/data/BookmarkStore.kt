@@ -71,5 +71,18 @@ class BookmarkStore(private val context: Context) {
         }
     }
 
+    suspend fun replaceAll(list: List<Bookmark>) {
+        context.dataStore.edit { prefs ->
+            prefs[KEY_BOOKMARKS] = json.encodeToString(list.sortedBy { it.line })
+        }
+    }
+
+    suspend fun rename(line: Int, newTitle: String) {
+        context.dataStore.edit { prefs ->
+            val cur = try { json.decodeFromString<List<Bookmark>>(prefs[KEY_BOOKMARKS] ?: "[]") } catch (e: Exception) { emptyList() }
+            prefs[KEY_BOOKMARKS] = json.encodeToString(cur.map { if (it.line == line) it.copy(title = newTitle) else it })
+        }
+    }
+
     suspend fun bookmarksList(): List<Bookmark> = bookmarks.first()
 }

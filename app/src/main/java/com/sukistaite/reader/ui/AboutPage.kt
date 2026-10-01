@@ -83,6 +83,24 @@ fun AboutPage(onBack: () -> Unit) {
                             color = MaterialTheme.colorScheme.primary
                         )
                     }
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("构建时间", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(AppMeta.BUILD_TIME, fontSize = 13.sp)
+                    }
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("设备", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(
+                            "${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}",
+                            fontSize = 13.sp,
+                            maxLines = 1,
+                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                            modifier = Modifier.widthIn(max = 180.dp)
+                        )
+                    }
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("系统", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("Android ${android.os.Build.VERSION.RELEASE}", fontSize = 13.sp)
+                    }
                 }
             }
 
