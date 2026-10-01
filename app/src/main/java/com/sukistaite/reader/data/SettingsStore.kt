@@ -77,6 +77,8 @@ class SettingsStore(private val context: Context) {
         val searchHistory = stringPreferencesKey("search_history_json")
     }
 
+    val highlights: Flow<Set<Int>> = context.settingsStore.data.map { HighlightCodec.decode(it[K.highlights]) }
+
     val settings: Flow<AppSettings> = context.settingsStore.data.map { p ->
         AppSettings(
             themeMode = ThemeMode.from(p[K.theme]),

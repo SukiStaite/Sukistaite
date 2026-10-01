@@ -84,6 +84,12 @@ object DocRepository {
         return found?.title ?: "文档开头"
     }
 
+    /** 全半角宽松归一化（仅 fuzzy 模式用） */
+    private fun normalize(s: String, caseSensitive: Boolean): String {
+        val t = s.replace('：', ':').replace('（', '(').replace('）', ')').replace('，', ',')
+        return if (caseSensitive) t else t.lowercase()
+    }
+
     /**
      * v1.2 统一搜索入口。
      * mode: "exact" 精确包含 / "fuzzy" 忽略大小写+全半角宽松 / "regex" 正则
@@ -111,34 +117,25 @@ object DocRepository {
             else -> true
         }
 
-        val regex: Regex? = when (mode) {
-            "regex" -> try {
-                Regex(q, if (caseSensitive) 0 else RegexOption.IGNORE_CASE)
-            } catch (e: Exception) { null }
-            else -> null
-        }
-
-        val matches: (String) -> Boolean = when {
-            mode == "regex" -> regex?.let { re -> { s: String -> re.containsMatchIn(s) } } ?: { false }
-            mode == "fuzzy" -> {
-                // 全半角宽松 + 可选大小写
-                val norm = q.replace('：', ':').replace('（', '(').replace('）', ')')
-                    .replace('，', ',').let { if (caseSensitive) it else it.lowercase() }
-                { s: String ->
-                    val t = s.replace('：', ':').replace('（', '(').replace('）', ')')
-                        .replace('，', ',').let { if (caseSensitive) it else it.lowercase() }
-                    if (wholeWord) Regex(Regex.escape(norm)).containsMatchIn(t) else norm in t
-                }
+        // 构造匹配函数（显式类型标注，避免类型推断歧义）
+        val matches: (String) -> Boolean = when (mode) {
+            "regex" -> {
+                val re = try { Regex(q, if (caseSensitive) setOf<RegexOption>() else setOf(RegexOption.IGNORE_CASE)) } catch (e: Exception) { null }
+                if (re == null) ({ _: String -> false }) else ({ s: String -> re.containsMatchIn(s) })
             }
-            else -> { // exact
+            "fuzzy" -> {
+                val norm = normalize(q, caseSensitive)
+                ({ s: String -> normalize(s, caseSensitive).contains(norm) })
+            }
+            else -> {
                 if (wholeWord) {
-                    val re = Regex("(^|[^\\p{L}\\p{N}])${Regex.escape(if (caseSensitive) q else q)}($|[^\\p{L}\\p{N}])")
-                    { s: String -> re.containsMatchIn(s) }
+                    val re = Regex("(^|[^\\p{L}\\p{N}])" + Regex.escape(q) + "($|[^\\p{L}\\p{N}])",
+                        if (caseSensitive) setOf() else setOf(RegexOption.IGNORE_CASE))
+                    ({ s: String -> re.containsMatchIn(s) })
                 } else if (caseSensitive) {
-                    { s: String -> q in s }
+                    ({ s: String -> s.contains(q) })
                 } else {
-                    val ql = q.lowercase()
-                    { s: String -> ql in s.lowercase() }
+                    ({ s: String -> s.lowercase().contains(q.lowercase()) })
                 }
             }
         }

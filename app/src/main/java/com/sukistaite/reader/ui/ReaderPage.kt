@@ -4,6 +4,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -21,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -33,6 +35,8 @@ import com.sukistaite.reader.data.Heading
 import com.sukistaite.reader.data.SettingsStore
 import com.sukistaite.reader.data.VolumeKeyBus
 import com.sukistaite.reader.ui.components.AppTopBar
+import com.sukistaite.reader.ui.components.ParaActionSheet
+import com.sukistaite.reader.ui.components.ReaderTocDrawer
 import com.sukistaite.reader.ui.components.GlassFab
 import com.sukistaite.reader.ui.theme.AppFonts
 import kotlinx.coroutines.launch
@@ -110,8 +114,6 @@ fun ReaderPage(
     var chromeVisible by remember { mutableStateOf(true) }   // 沉浸模式：双击切换
     var drawerOpen by remember { mutableStateOf(false) }
     var menuParaLine by remember { mutableStateOf<Int?>(null) } // 长按菜单
-    val flashLine2 = if (chapterId.startsWith("line-")) explicitTarget else null
-    var flashActive by remember(chapterId) { mutableStateOf(flashLine2 != null) } // 搜索跳转闪烁
 
     DisposableEffect(Unit) {
         VolumeKeyBus.enabled = true
@@ -130,6 +132,9 @@ fun ReaderPage(
             else -> chapterId.toIntOrNull()?.minus(1)
         }
     }
+
+    val flashLine2 = if (chapterId.startsWith("line-")) explicitTarget else null
+    var flashActive by remember(chapterId) { mutableStateOf(flashLine2 != null) } // 搜索跳转闪烁
 
     val chapterTitle = remember(headings, explicitTarget) {
         if (headings.isEmpty()) ""
