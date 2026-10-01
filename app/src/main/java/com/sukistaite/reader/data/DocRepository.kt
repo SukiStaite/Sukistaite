@@ -71,7 +71,7 @@ object DocRepository {
             }
         }
         cachedHeadings = headings
-        headings
+        return headings
     }
 
     /** 返回某行所属的章标题（向上找最近的 level=1 标题） */
