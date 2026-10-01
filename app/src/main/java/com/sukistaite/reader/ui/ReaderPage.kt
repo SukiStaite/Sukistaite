@@ -35,6 +35,7 @@ import kotlinx.coroutines.launch
  * - 双模式：普通模式（逐行还原原文）/ 小说模式（段落重排+大字号+宽边距），随时切换
  * - 文字可复制（SelectionContainer）
  * - 章节阅读记忆（滚动停止自动保存，重新进入自动恢复）
+ * - 章节内容隔离：一章只显示本章内容，滚动不越过章节边界
  * - 悬浮毛玻璃按钮组（返回/收藏/模式/设置）
  */
 data class ReaderParagraph(
@@ -112,8 +113,20 @@ fun ReaderPage(
     }
     val chapterKey = chapterTitle.ifBlank { "文档开头" }
 
-    val paragraphs = remember(loaded, lines, headings) {
-        if (!loaded) emptyList() else buildParagraphs(lines, headings)
+    // ── 章节范围：只显示当前章节内的内容，不越过边界 ──
+    val chapterRange = remember(loaded, headings, explicitTarget, lines) {
+        if (!loaded || lines.isEmpty()) 0..0
+        else {
+            val target = (explicitTarget ?: 0).coerceAtLeast(0)
+            val start = headings.filter { it.line <= target }.maxByOrNull { it.line }?.line ?: 0
+            val end = headings.filter { it.line > start }.minOfOrNull { it.line }?.minus(1) ?: (lines.size - 1)
+            start..end
+        }
+    }
+
+    val paragraphs = remember(loaded, lines, headings, chapterRange) {
+        if (!loaded) emptyList()
+        else buildParagraphs(lines, headings).filter { it.startLine in chapterRange }
     }
 
     val listState = rememberLazyListState()
@@ -122,8 +135,10 @@ fun ReaderPage(
     LaunchedEffect(paragraphs, chapterKey) {
         if (paragraphs.isEmpty()) return@LaunchedEffect
         val target = explicitTarget ?: settings.progress[chapterKey] ?: 0
-        if (target > 0) {
-            val idx = paragraphs.indexOfFirst { it.startLine >= target }
+        if (explicitTarget != null || target > 0) {
+            // 钳制到当前章节范围内（章节现在只显示自己的内容）
+            val clamped = target.coerceIn(chapterRange.first, chapterRange.last)
+            val idx = paragraphs.indexOfFirst { it.startLine >= clamped }
             if (idx >= 0) listState.scrollToItem(idx.coerceAtMost(paragraphs.size - 1))
         }
     }
