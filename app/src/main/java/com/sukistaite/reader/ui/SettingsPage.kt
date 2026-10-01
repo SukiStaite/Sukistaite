@@ -54,7 +54,7 @@ fun SettingsPage(onBack: () -> Unit) {
                         }
                         FilterChip(
                             selected = s.themeMode == mode,
-                            onClick = { store.setTheme(mode) },
+                            onClick = { scope.launch { store.setTheme(mode) } },
                             label = { Text(label) }
                         )
                     }
@@ -64,7 +64,7 @@ fun SettingsPage(onBack: () -> Unit) {
                 Text("字体大小 · ${(s.fontScale * 100).toInt()}%", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Slider(
                     value = s.fontScale,
-                    onValueChange = { store.setFontScale(it) },
+                    onValueChange = { scope.launch { store.setFontScale(it) } },
                     valueRange = 0.8f..1.6f,
                     steps = 15
                 )
@@ -76,7 +76,7 @@ fun SettingsPage(onBack: () -> Unit) {
                     AppFonts.options.forEach { (key, label) ->
                         FilterChip(
                             selected = s.fontFamily == key,
-                            onClick = { store.setFontFamily(key) },
+                            onClick = { scope.launch { store.setFontFamily(key) } },
                             label = { Text(label) }
                         )
                     }
@@ -89,7 +89,7 @@ fun SettingsPage(onBack: () -> Unit) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text("切换动画", fontSize = 15.sp)
-                    Switch(checked = s.animations, onCheckedChange = { store.setAnimations(it) })
+                    Switch(checked = s.animations, onCheckedChange = { scope.launch { store.setAnimations(it) } })
                 }
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -104,7 +104,7 @@ fun SettingsPage(onBack: () -> Unit) {
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                    Switch(checked = s.novelMode, onCheckedChange = { store.setNovelModeDefault(it) })
+                    Switch(checked = s.novelMode, onCheckedChange = { scope.launch { store.setNovelModeDefault(it) } })
                 }
             }
 
@@ -138,7 +138,7 @@ fun SettingsPage(onBack: () -> Unit) {
                     Button(onClick = { videoLauncher.launch(arrayOf("video/*")) }) { Text("选视频") }
                     if (s.bgUri != null) {
                         Button(
-                            onClick = { store.clearBackground() },
+                            onClick = { scope.launch { store.clearBackground() } },
                             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.errorContainer)
                         ) { Text("清除") }
                     }
@@ -148,7 +148,7 @@ fun SettingsPage(onBack: () -> Unit) {
                     Text("背景透明度 · ${(s.bgOpacity * 100).toInt()}%", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Slider(
                         value = s.bgOpacity,
-                        onValueChange = { store.setBgOpacity(it) },
+                        onValueChange = { scope.launch { store.setBgOpacity(it) } },
                         valueRange = 0.05f..0.6f
                     )
                 }

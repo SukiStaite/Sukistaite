@@ -15,6 +15,7 @@ import com.sukistaite.reader.data.AppMeta
 import com.sukistaite.reader.data.DocRepository
 import com.sukistaite.reader.data.SettingsStore
 import com.sukistaite.reader.data.UpdateChecker
+import com.sukistaite.reader.data.UpdateInfo
 import com.sukistaite.reader.ui.components.AppTopBar
 import kotlinx.coroutines.launch
 
@@ -27,7 +28,7 @@ fun AboutPage(onBack: () -> Unit) {
     val s by store.settings.collectAsState(initial = com.sukistaite.reader.data.AppSettings())
 
     var checking by remember { mutableStateOf(false) }
-    var info by remember { mutableStateOf<UpdateChecker.UpdateInfo?>(null) }
+    var info by remember { mutableStateOf<UpdateInfo?>(null) }
     var resultMsg by remember { mutableStateOf("") }
     var lastCheck by remember { mutableStateOf("从未") }
 

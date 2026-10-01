@@ -69,12 +69,14 @@ class CloudSync(private val context: Context) {
     }
 
     /** 从 gist 响应中提取 suki_sync.json 的 content 字段 */
-    private fun extractContent(respBody: String): String? = try {
-        val files = json.parseToJsonElement(respBody).jsonObject["files"]?.jsonObject ?: return null
-        val f = files["suki_sync.json"]?.jsonObject ?: return null
-        (f["content"] as? JsonPrimitive)?.content
-    } catch (e: Exception) {
-        null
+    private fun extractContent(respBody: String): String? {
+        return try {
+            val files = json.parseToJsonElement(respBody).jsonObject["files"]?.jsonObject ?: return null
+            val f = files["suki_sync.json"]?.jsonObject ?: return null
+            (f["content"] as? JsonPrimitive)?.content
+        } catch (e: Exception) {
+            null
+        }
     }
 
     /** 推送本地数据到 gist（无 gist 时自动创建） */
