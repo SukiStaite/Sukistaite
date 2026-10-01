@@ -1,3 +1,6 @@
+import java.text.SimpleDateFormat
+import java.util.Date
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -8,13 +11,14 @@ android {
     namespace = "com.sukistaite.reader"
     compileSdk = 34
 
+    val buildTime = SimpleDateFormat("yyyy-MM-dd HH:mm").format(Date())
     defaultConfig {
         applicationId = "com.sukistaite.reader"
         minSdk = 26
         targetSdk = 34
         versionCode = 2
         versionName = "1.4.0"
-        buildConfigField("String", "BUILD_TIME", "\"" + java.time.LocalDateTime.now(java.time.ZoneId.of("UTC+8")).format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")) + "\"")
+        buildConfigField("String", "BUILD_TIME", "\"$buildTime\"")
     }
 
     buildTypes {
