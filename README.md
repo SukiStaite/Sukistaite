@@ -45,14 +45,14 @@ app/src/main/java/com/sukistaite/reader/
 每次 push 到 `main`，GitHub Actions 自动编译 release APK 并上传到 Artifacts。
 
 ```bash
-git clone https://github.com/yanbao2525-beep/Sukistaite.git
+git clone https://github.com/SukiStaite/Sukistaite.git
 # Android Studio 打开，Sync 后直接 Run
 ```
 
 ## 📄 内容与版权
 
 - 本仓库**代码**部分以 [Apache-2.0](LICENSE) 协议开源，欢迎学习、借鉴与二次开发。
-- 应用内置的 `assets/document.txt`（约 24 万字人设文档）内容著作权归原作者 **糖宝 / sukistaite** 所有。
+- 应用内置的 `assets/sukistaite.txt`（约 24 万字人设文档）内容著作权归原作者 **糖宝 / sukistaite** 所有。
 - ⚠️ **该文档含成人向内容，仅限 18 岁以上用户私下查阅**。禁止商用、倒卖或未授权的公开二次分发；请遵守你所在地区的法律法规。
 
 ## 🙋 一句话
