@@ -20,6 +20,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
@@ -278,10 +280,17 @@ fun ReaderPage(
                 } else {
                     // 双击切换工具栏（检测双击：两次点击间隔 < 300ms）
                     var lastTap by remember { mutableStateOf(0L) }
+                    // 纸张层（在列表之下、主题背景之上）
+                    com.sukistaite.reader.ui.components.PaperLayer(
+                        settings.paperStyle,
+                        Modifier.matchParentSize()
+                    )
                     LazyColumn(
                         state = listState,
                         modifier = Modifier
-                            .fillMaxSize()
+                            .align(Alignment.TopCenter)
+                            .widthIn(max = (800 * settings.contentMaxWidth).dp)
+                            .fillMaxHeight()
                             .clickable(
                                 indication = null,
                                 interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
@@ -377,6 +386,30 @@ fun ReaderPage(
                                 }
                             )
                         }
+                    }
+                }
+
+                // 边缘渐隐遮罩（v1.3，可在设置关闭）
+                if (settings.edgeFade) {
+                    val fade = MaterialTheme.colorScheme.background
+                    Column(Modifier.matchParentSize()) {
+                        Box(
+                            Modifier
+                                .fillMaxWidth()
+                                .height(28.dp)
+                                .background(
+                                    Brush.verticalGradient(listOf(fade, Color.Transparent))
+                                )
+                        )
+                        Spacer(Modifier.weight(1f))
+                        Box(
+                            Modifier
+                                .fillMaxWidth()
+                                .height(36.dp)
+                                .background(
+                                    Brush.verticalGradient(listOf(Color.Transparent, fade))
+                                )
+                        )
                     }
                 }
 

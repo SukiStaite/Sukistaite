@@ -51,6 +51,7 @@ fun SettingsPage(onBack: () -> Unit, onAbout: () -> Unit = {}) {
                             ThemeMode.LIGHT -> "浅色"
                             ThemeMode.DARK -> "深色"
                             ThemeMode.PINK -> "粉色"
+                            ThemeMode.AMOLED -> "纯黑"
                         }
                         FilterChip(
                             selected = s.themeMode == mode,
@@ -113,6 +114,98 @@ fun SettingsPage(onBack: () -> Unit, onAbout: () -> Unit = {}) {
                         )
                     }
                     Switch(checked = s.novelMode, onCheckedChange = { scope.launch { store.setNovelModeDefault(it) } })
+                }
+
+                Spacer(Modifier.height(16.dp))
+                // 自定义主色
+                Text("自定义主色", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Spacer(Modifier.height(8.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+                    val palette = listOf(
+                        "" to "跟随主题",
+                        "#B8455F" to "樱花粉",
+                        "#7C4DFF" to "淡紫",
+                        "#00897B" to "青碧",
+                        "#1565C0" to "黛蓝",
+                        "#EF6C00" to "橘",
+                        "#6D4C41" to "棕"
+                    )
+                    palette.forEach { (hex, label) ->
+                        FilterChip(
+                            selected = s.customPrimary == hex,
+                            onClick = { scope.launch { store.setCustomPrimary(hex) } },
+                            label = { Text(label, fontSize = 12.sp) },
+                            leadingIcon = if (hex.isNotEmpty()) {{
+                                Box(
+                                    Modifier
+                                        .size(14.dp)
+                                        .background(
+                                            try { Color(android.graphics.Color.parseColor(hex)) } catch (e: Exception) { Color.Gray },
+                                            CircleShape
+                                        )
+                                )
+                            }} else null
+                        )
+                    }
+                }
+
+                Spacer(Modifier.height(16.dp))
+                // 阅读纸张
+                Text("阅读纸张", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Spacer(Modifier.height(8.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    listOf(
+                        com.sukistaite.reader.data.PaperStyle.NONE to "无",
+                        com.sukistaite.reader.data.PaperStyle.PAPER to "仿纸",
+                        com.sukistaite.reader.data.PaperStyle.PARCHMENT to "羊皮",
+                        com.sukistaite.reader.data.PaperStyle.GRADIENT to "渐变"
+                    ).forEach { (ps, label) ->
+                        FilterChip(
+                            selected = s.paperStyle == ps,
+                            onClick = { scope.launch { store.setPaperStyle(ps) } },
+                            label = { Text(label, fontSize = 12.sp) }
+                        )
+                    }
+                }
+
+                Spacer(Modifier.height(16.dp))
+                // 毛玻璃强度
+                Text("毛玻璃强度 · ${(s.glassStrength * 100).toInt()}%", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    if (s.glassStrength < 0.3f) "清透" else if (s.glassStrength < 0.7f) "适中" else "磨砂",
+                    fontSize = 11.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Slider(
+                    value = s.glassStrength,
+                    onValueChange = { scope.launch { store.setGlassStrength(it) } },
+                    valueRange = 0f..1f
+                )
+
+                Spacer(Modifier.height(8.dp))
+                // 内容宽度
+                Text("内容最大宽度 · ${(s.contentMaxWidth * 100).toInt()}%", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Slider(
+                    value = s.contentMaxWidth,
+                    onValueChange = { scope.launch { store.setContentMaxWidth(it) } },
+                    valueRange = 0.6f..1f,
+                    steps = 7
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text("阅读页边缘渐隐", fontSize = 15.sp)
+                        Text(
+                            "上下边缘淡出，减少切割感",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Switch(checked = s.edgeFade, onCheckedChange = { scope.launch { store.setEdgeFade(it) } })
                 }
             }
 

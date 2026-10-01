@@ -18,14 +18,27 @@ import kotlinx.serialization.json.Json
 private val Context.settingsStore: DataStore<Preferences> by preferencesDataStore(name = "suki_settings")
 
 enum class ThemeMode {
-    LIGHT, DARK, PINK;
+    LIGHT, DARK, PINK, AMOLED;
     companion object {
         fun from(s: String?): ThemeMode = entries.firstOrNull { it.name == s } ?: PINK
     }
 }
 
+/** 阅读页纸张风格 */
+enum class PaperStyle {
+    NONE, PAPER, PARCHMENT, GRADIENT;
+    companion object {
+        fun from(s: String?): PaperStyle = entries.firstOrNull { it.name == s } ?: NONE
+    }
+}
+
 data class AppSettings(
     val themeMode: ThemeMode = ThemeMode.PINK,
+    val customPrimary: String = "",          // "#RRGGBB"，空=跟随主题
+    val paperStyle: PaperStyle = PaperStyle.NONE,
+    val glassStrength: Float = 0.7f,         // 毛玻璃强度 0~1（透明→磨砂）
+    val edgeFade: Boolean = true,            // 阅读页边缘渐隐
+    val contentMaxWidth: Float = 1.0f,       // 内容最大宽度比例 0.6~1.0
     val fontScale: Float = 1.0f,
     val fontFamily: String = "default",
     val novelMode: Boolean = false,
@@ -55,11 +68,29 @@ object ProgressCodec {
     fun encode(m: Map<String, Int>): String = json.encodeToString(m)
 }
 
+/** 主题导出/导入 JSON 结构（v1.3 主题分享） */
+@kotlinx.serialization.Serializable
+data class ThemeExport(
+    val themeMode: String,
+    val customPrimary: String,
+    val paperStyle: String,
+    val glassStrength: Float,
+    val fontFamily: String,
+    val fontScale: Float,
+    val bgUri: String = "",      // 背景不导出（URI 换机无效），仅留位
+    val exportedAt: Long = 0
+)
+
 /** 全应用设置持久化（DataStore） */
 class SettingsStore(private val context: Context) {
 
     private object K {
         val theme = stringPreferencesKey("theme_mode")
+        val customPrimary = stringPreferencesKey("custom_primary")
+        val paperStyle = stringPreferencesKey("paper_style")
+        val glassStrength = floatPreferencesKey("glass_strength")
+        val edgeFade = booleanPreferencesKey("edge_fade")
+        val contentMaxWidth = floatPreferencesKey("content_max_width")
         val fontScale = floatPreferencesKey("font_scale")
         val fontFamily = stringPreferencesKey("font_family")
         val novelMode = booleanPreferencesKey("novel_mode")
@@ -82,6 +113,11 @@ class SettingsStore(private val context: Context) {
     val settings: Flow<AppSettings> = context.settingsStore.data.map { p ->
         AppSettings(
             themeMode = ThemeMode.from(p[K.theme]),
+            customPrimary = p[K.customPrimary] ?: "",
+            paperStyle = PaperStyle.from(p[K.paperStyle]),
+            glassStrength = p[K.glassStrength] ?: 0.7f,
+            edgeFade = p[K.edgeFade] ?: true,
+            contentMaxWidth = p[K.contentMaxWidth] ?: 1.0f,
             fontScale = p[K.fontScale] ?: 1.0f,
             fontFamily = p[K.fontFamily] ?: "default",
             novelMode = p[K.novelMode] ?: false,
@@ -106,7 +142,15 @@ class SettingsStore(private val context: Context) {
         context.settingsStore.edit(block)
     }
 
+    // ── v1.3 主题与外观 ──
     suspend fun setTheme(mode: ThemeMode) = edit { it[K.theme] = mode.name }
+    suspend fun setCustomPrimary(hex: String) = edit { it[K.customPrimary] = hex }
+    suspend fun setPaperStyle(s: PaperStyle) = edit { it[K.paperStyle] = s.name }
+    suspend fun setGlassStrength(v: Float) = edit { it[K.glassStrength] = v.coerceIn(0f, 1f) }
+    suspend fun setEdgeFade(v: Boolean) = edit { it[K.edgeFade] = v }
+    suspend fun setContentMaxWidth(v: Float) = edit { it[K.contentMaxWidth] = v.coerceIn(0.6f, 1f) }
+
+    // ── 原有设置 ──
     suspend fun setFontScale(v: Float) = edit { it[K.fontScale] = v }
     suspend fun setFontFamily(v: String) = edit { it[K.fontFamily] = v }
     suspend fun setNovelModeDefault(v: Boolean) = edit { it[K.novelMode] = v }
@@ -157,6 +201,35 @@ class SettingsStore(private val context: Context) {
     }
 
     suspend fun clearSearchHistory() = edit { it[K.searchHistory] = "[]" }
+
+    // ── v1.3 主题导入/导出 ──
+    suspend fun exportTheme(): String {
+        val s = snapshot()
+        return Json.encodeToString(
+            ThemeExport(
+                themeMode = s.themeMode.name,
+                customPrimary = s.customPrimary,
+                paperStyle = s.paperStyle.name,
+                glassStrength = s.glassStrength,
+                fontFamily = s.fontFamily,
+                fontScale = s.fontScale,
+                exportedAt = System.currentTimeMillis()
+            )
+        )
+    }
+
+    suspend fun importTheme(jsonText: String): Result<ThemeExport> = try {
+        val t = Json.decodeFromString<ThemeExport>(jsonText.trim())
+        setTheme(ThemeMode.from(t.themeMode))
+        setCustomPrimary(t.customPrimary)
+        setPaperStyle(PaperStyle.from(t.paperStyle))
+        setGlassStrength(t.glassStrength)
+        setFontFamily(t.fontFamily)
+        setFontScale(t.fontScale)
+        Result.success(t)
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
 }
 
 /** 高亮行号集合 JSON 编解码 */
