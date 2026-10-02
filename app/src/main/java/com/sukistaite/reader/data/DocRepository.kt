@@ -61,13 +61,21 @@ object DocRepository {
     /** 解析章节标题：第X章/章X = level 1；第X节/一、二、 = level 2 */
     fun loadHeadings(context: Context): List<Heading> {
         cachedHeadings?.let { return it }
-        val chapterRe = Regex("^第[一二三四五六七八九十百千0-9]+章")
-        val sectionRe = Regex("^(第[一二三四五六七八九十百千0-9]+节|[一二三四五六七八九十]+、)")
+        // 真·章节标题只认汉字数字格式（第一章：/第一节：）；
+        // 「第1章「初来乍到」（大一）：正文…」这类阿拉伯数字剧情内容行不算标题。
+        val chapterRe = Regex("^第[一二三四五六七八九十百千零]+章")
+        val sectionRe = Regex("^(第[一二三四五六七八九十百千零]+节|[一二三四五六七八九十]+、)")
         val headings = mutableListOf<Heading>()
-        loadLines(context).forEachIndexed { i, line ->
+        loadLines(context).forEachIndexed { i, raw ->
+            val line = raw.trim()
             when {
-                chapterRe.containsMatchIn(line) -> headings.add(Heading(i, 1, line.trim(), line))
-                sectionRe.containsMatchIn(line) -> headings.add(Heading(i, 2, line.trim(), line))
+                // 章标题：汉字数字章名（长度护栏防超长正文误判）
+                chapterRe.containsMatchIn(line) && line.length <= 60 ->
+                    headings.add(Heading(i, 1, line, raw))
+                // 节标题：汉字数字节名 + 长度护栏（「一、校区列表…」是标题，
+                // 「一、正文各条目下的碎碎念说明…」是长正文，不收）
+                sectionRe.containsMatchIn(line) && line.length <= 30 ->
+                    headings.add(Heading(i, 2, line, raw))
             }
         }
         cachedHeadings = headings
