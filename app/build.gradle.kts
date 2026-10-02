@@ -16,8 +16,8 @@ android {
         applicationId = "com.sukistaite.reader"
         minSdk = 26
         targetSdk = 34
-        versionCode = 2
-        versionName = "1.4.0"
+        versionCode = 3
+        versionName = "1.4.1"
         buildConfigField("String", "BUILD_TIME", "\"$buildTime\"")
     }
 

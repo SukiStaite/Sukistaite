@@ -12,10 +12,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -27,7 +24,7 @@ import com.sukistaite.reader.ui.components.AppTopBar
 import kotlinx.coroutines.launch
 
 /**
- * 搜索页 v1.2：
+ * 搜索页 v1.4：
  * - 三种模式：精确包含 / 模糊（全半角宽松）/ 正则
  * - 范围：全文 / 仅标题 / 仅书签
  * - 全词匹配 / 区分大小写 开关

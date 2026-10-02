@@ -50,7 +50,7 @@ data class AppSettings(
     val gistId: String = "",
     val progress: Map<String, Int> = emptyMap(),
     val lastChapter: String = "",
-    val contentVersion: String = "V3.1",
+    val contentVersion: String = "V3.2",
     val highlights: Set<Int> = emptySet(),
     val volumeKeyPaging: Boolean = true,
     val searchHistory: List<String> = emptyList()
@@ -129,7 +129,7 @@ class SettingsStore(private val context: Context) {
             gistId = p[K.gistId] ?: "",
             progress = ProgressCodec.decode(p[K.progress]),
             lastChapter = p[K.lastChapter] ?: "",
-            contentVersion = p[K.contentVersion] ?: "V3.1",
+            contentVersion = p[K.contentVersion] ?: "V3.2",
             highlights = HighlightCodec.decode(p[K.highlights]),
             volumeKeyPaging = p[K.volumeKeyPaging] ?: true,
             searchHistory = HistoryCodec.decode(p[K.searchHistory])
