@@ -14,8 +14,8 @@ import java.net.URL
 
 /** 应用元信息 */
 object AppMeta {
-    const val VERSION = "1.4.1"
-    const val CONTENT_VERSION = "V3.2"
+    const val VERSION = "1.6.0"
+    const val CONTENT_VERSION = "V3.4"
     const val REPO = "SukiStaite/Sukistaite"
     const val REPO_URL = "https://github.com/SukiStaite/Sukistaite"
     // 构建时间：CI 环境注入 BuildConfig，本地为未知
