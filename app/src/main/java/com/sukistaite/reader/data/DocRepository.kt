@@ -81,24 +81,22 @@ object DocRepository {
             }
 
             // ── 章标题 ──
-            if (chapterRe.containsMatchIn(line) && line.length <= 60) {
-                // 排除目录条目特征：章名后含「——」「：N节」「（第X章）」等描述性内容
-                val isDirEntry = line.contains("——") ||
-                    Regex("章[：:][^：]{0,30}[：:]\\s*\\d+节").containsMatchIn(line) ||
-                    (inAppendixDir && !line.contains("附录"))
-                if (!isDirEntry) {
+            val isChapterLine = chapterRe.containsMatchIn(line) && line.length <= 60
+            val isDirEntry = isChapterLine && (
+                line.contains("——") ||
+                Regex("章[：:][^：]{0,30}[：:]\\s*\\d+节").containsMatchIn(line) ||
+                (inAppendixDir && !line.contains("附录"))
+                )
+            when {
+                isChapterLine && !isDirEntry ->
                     headings.add(Heading(i, 1, line, raw))
-                    continue
-                }
-            }
-            // ── 节标题 ──
-            val isSection = (sectionNumRe.containsMatchIn(line) || sectionCnRe.containsMatchIn(line)) && line.length <= 30
-            if (isSection) {
+                // ── 节标题（仅非章标题行判定）──
                 // 排除含句号/叹号/问号的「标题样正文」（如「八、朋友圈：重要时刻帮祈宝发朋友圈。闲时刷一刷。」）
-                val hasSentenceEnd = line.contains('。') || line.contains('！') || line.contains('？')
-                if (!hasSentenceEnd) {
+                !isChapterLine &&
+                (sectionNumRe.containsMatchIn(line) || sectionCnRe.containsMatchIn(line)) &&
+                line.length <= 30 &&
+                !line.contains('。') && !line.contains('！') && !line.contains('？') ->
                     headings.add(Heading(i, 2, line, raw))
-                }
             }
         }
         cachedHeadings = headings
