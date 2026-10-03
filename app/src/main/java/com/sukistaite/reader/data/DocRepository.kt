@@ -58,24 +58,47 @@ object DocRepository {
         return lines
     }
 
-    /** 解析章节标题：第X章/章X = level 1；第X节/一、二、 = level 2 */
+    /** 解析章节标题：第X章 = level 1；第X节/一、 = level 2（v1.5 严格模式） */
     fun loadHeadings(context: Context): List<Heading> {
         cachedHeadings?.let { return it }
-        // 真·章节标题只认汉字数字格式（第一章：/第一节：）；
-        // 「第1章「初来乍到」（大一）：正文…」这类阿拉伯数字剧情内容行不算标题。
-        val chapterRe = Regex("^第[一二三四五六七八九十百千零]+章")
-        val sectionRe = Regex("^(第[一二三四五六七八九十百千零]+节|[一二三四五六七八九十]+、)")
+        // v1.5 严格判定规则（修复目录里混入正文/目录条目的问题）：
+        // 1. 章标题必须是「第X章：」——章名后紧跟全角冒号，且冒号后 2~40 字内无句号
+        //    （「第一章：林晴祈（祈宝）」✓；附录目录条目「第二章 苏清辞…：9节——…」带空格无冒号紧跟 ✗；
+        //     「第1章「初来乍到」（大一）：正文…」阿拉伯数字 ✗；「第二章附录·全章总目录」自引用排除）
+        // 2. 节标题「第X节：」「一、」同样要求冒号/顿号后无句号
+        val chapterRe = Regex("^第[一二三四五六七八九十百千零]+章[：:]")
+        val sectionNumRe = Regex("^第[一二三四五六七八九十百千零]+节[：:]")
+        val sectionCnRe = Regex("^[一二三四五六七八九十]+、")
         val headings = mutableListOf<Heading>()
+        var inAppendixDir = false   // 附录目录区间标记（目录条目行不收）
         loadLines(context).forEachIndexed { i, raw ->
             val line = raw.trim()
-            when {
-                // 章标题：汉字数字章名（长度护栏防超长正文误判）
-                chapterRe.containsMatchIn(line) && line.length <= 60 ->
+            if (line.isEmpty()) return@forEachIndexed
+
+            // 进入/退出附录目录列表区（「第X章：附录」章起，到下一个真章标题止）
+            if (chapterRe.containsMatchIn(line)) {
+                inAppendixDir = line.contains("附录") && line.contains("目录")
+            }
+
+            // ── 章标题 ──
+            if (chapterRe.containsMatchIn(line) && line.length <= 60) {
+                // 排除目录条目特征：章名后含「——」「：N节」「（第X章）」等描述性内容
+                val isDirEntry = line.contains("——") ||
+                    Regex("章[：:][^：]{0,30}[：:]\\s*\\d+节").containsMatchIn(line) ||
+                    (inAppendixDir && !line.contains("附录"))
+                if (!isDirEntry) {
                     headings.add(Heading(i, 1, line, raw))
-                // 节标题：汉字数字节名 + 长度护栏（「一、校区列表…」是标题，
-                // 「一、正文各条目下的碎碎念说明…」是长正文，不收）
-                sectionRe.containsMatchIn(line) && line.length <= 30 ->
+                    continue
+                }
+            }
+            // ── 节标题 ──
+            val isSection = (sectionNumRe.containsMatchIn(line) || sectionCnRe.containsMatchIn(line)) && line.length <= 30
+            if (isSection) {
+                // 排除含句号/叹号/问号的「标题样正文」（如「八、朋友圈：重要时刻帮祈宝发朋友圈。闲时刷一刷。」）
+                val hasSentenceEnd = line.contains('。') || line.contains('！') || line.contains('？')
+                if (!hasSentenceEnd) {
                     headings.add(Heading(i, 2, line, raw))
+                }
             }
         }
         cachedHeadings = headings
